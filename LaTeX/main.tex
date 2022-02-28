@@ -29,8 +29,8 @@
 
 
 
-\title{Ising Models Accounting for Hidden Activity}
-\author{Angel Poc-López, Miguel Aguilera}
+\title{Kinetic Ising Models Accounting for Hidden Activity}
+\author{Angel Poc-López}
 \date{February 2022}
 
 \begin{document}
@@ -46,21 +46,19 @@ The Kinetic Ising model allows to model the behavior of N interacting neurons ov
     \label{eq:glauber-dynamics}
 \end{equation}
 
-Where the activation probability is driven by the effective fields $\*h_{t}$, composed of a bias term $\*H = \{H_i\}$ and couplings to units at the previous time step $\*J= \{J_{ij}\}$,
+Here, the activation probability is driven by the effective fields $\*h_{t}$, composed of a bias term $\*H = \{H_i\}$ and couplings to units at the previous time step $\*J= \{J_{ij}\}$,
 
 \begin{equation}
 \label{eq:h1}
     h_{i,t} = H_{i} + \sum_j J_{ij}s_{j}(t-1).
 \end{equation}
 
-We can observe how the parameters governing the system ($*J$ and $*H$) are fixed over time, however, this might be too rigid for systems with a very complex dynamic.  In \cite{hertz2011ising}, Hertz et al. propose to use a variable $H_i(t)$ to study the non-stationary case. 
+We can observe how the parameters governing the system ($\*J$ and $\*H$) are fixed over time. However, this might be too rigid for systems with a very complex dynamic.
 
 
 \section{Kinetic Ising Model with Hidden Units}
 
-In contrast to \cite{hertz2011ising}, we propose to introduce a new variable $b_i(t)$, to which we will refer to as hidden units or neurons, as part of the effective field of each neuron, maintaining the parallel update rule of Eq. \ref{eq:glauber-dynamics}. 
-
-Now, we can observe how the effective field of each neuron $h_i(t)$ is subsuming the activity of each of the hidden units. The parameter $\*M$ weights the activity of each hidden neuron into the new effective field of each neuron:
+In \cite{hertz2011ising}, Hertz et al. propose to use a variable $H_i(t)$ to study the non-stationary case. In contrast to this, we propose to introduce a new variable $b_i(t)$ (hidden units or neurons) as part of the effective field of each neuron, maintaining the parallel update rule of Eq. \ref{eq:glauber-dynamics}. In this frame, we can see how the effective field of each neuron $h_i(t)$ is subsuming the activity of each of the hidden units by means of the weighting parameter $\*M$:
 \begin{equation}
 \label{eq:h2}
     h_{i}(t) = H_i + \sum_g M_{ig}b_g(t-1) + \sum_j J_{ij}s_{j}(t-1).
@@ -76,24 +74,24 @@ In Fig.~\ref{fig:net_arch} we can observe a simple schema of the architecture of
 
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=0.3\linewidth]{images/Hidden_Architecture.png}
+    \includegraphics[width=0.45\linewidth]{images/Hidden_Architecture.png}
     \caption{Architecture of the network.}
      \label{fig:net_arch}
 \end{figure}
 
-Our aim is to have a generative model able to reproduce the neural activity of a given dataset. In order to achieve that goal, we will perform a gradient ascent on the Likelihood:
+Our aim is to compose a generative model able to reproduce the neural activity of a given dataset. In order to achieve this goal, we will perform a gradient ascent on the likelihood:
 
 \begin{equation}
    \mathcal{L} = \sum_{i t} s_{i}(t) h_{i}(t) - \log{ 2 \, cosh \, h_{i}(t)}
-   \label{eq:Likelihood}
+   \label{eq:likelihood}
 \end{equation}
 
-In the following section the derivatives for the gradient ascent are going to be developed.
+In the following section we show the mathematical derivation required for the gradient ascent.
 
 
 \subsection{Derivatives}
 
-First, we develop the derivative of the Likelihood w.r.t. $\*H$ and $\*J$. These derivatives are equal to the ones in the standard Kinetic Ising model:
+First, we develop the derivative of the likelihood w.r.t. $\*H$ and $\*J$. These derivatives are equal to the ones in the standard Kinetic Ising model:
 
 \begin{align}
     \frac{\partial\mathcal{L}}{\partial H_n} =& \frac{\partial \sum_{it} \left [ s_{i}(t) h_{i}(t) - \log{ 2 \, cosh \, h_{i}(t)} \right ]}{\partial H_n}
@@ -148,7 +146,7 @@ Having into account that to complete the derivative, we also need to compute the
     \left ( 1 - b_g^2(t) \right )
 \end{align}
 
-Subsequently, we derive the Likelihood w.r.t. $\*L$ in a very similar way:
+Subsequently, we derive the likelihood w.r.t. $\*L$ in a very similar way:
 
 \begin{align}
     \frac{\partial\mathcal{L}}{\partial L_{nm}} =& 
@@ -165,7 +163,7 @@ Where the derivative of $b_g(t)$ w.r.t. $\*L$ is:
     \\ =& \left ( \delta_{gn} \, b_m(t-1) + \sum_k  L_{gk} \frac{ \partial b_k(t-1)}{\partial L_{nm}}\right ) \left ( 1 - b_g^2(t) \right )
 \end{align}
 
-Finally, to avoid a cold start setting $b(t=0)$ to 0, we define the derivative of the Likelihood w.r.t. $\*b(t=0)$
+Finally, to avoid a cold start setting $b(t=0)$ to 0, we define the derivative of the likelihood w.r.t. $\*b(t=0)$
 \begin{align}
     \frac{\partial\mathcal{L}}{\partial b_{z}(0)} =& \frac{\partial \sum_{it} \left [ s_{i}(t) h_{i}(t) - \log{ 2 \, cosh \, h_{i}(t)} \right ]}{\partial b_{z}(0)}
     \\ = & \frac{\partial \sum_{i} \left [ s_{i}(1) h_{i}(t) - \log{ 2 \, cosh \, h_{i}(1)} \right ]}{\partial b_{z}(0)}
@@ -178,27 +176,34 @@ Finally, to avoid a cold start setting $b(t=0)$ to 0, we define the derivative o
 
 \section{Results}
 
+To test our method, we compare the performance of our method in contrast to the standard Kinetic Ising model. We are interested in a scenario in which there is a model generating data but only a portion of these data is visible to the models. To reproduce this, we first simulate a model with N=10 total neurons for 5000 steps where we only collect the data from V=6 visible neurons. Subsequently, we try to infer the parameters that maximize the likelihood both with a standard Kinetic Ising model and with a Kinetic Ising model with a unique hidden unit. We asses the inference process doing a simulation of the network every 250 iterations for 6500 time-steps. With the data generated in the simulations, we compute the mean ($\*m$), same time correlations ($\*C$) and delayed correlations ($\*D$).\\
 
-To test our method, we compare the performance of our method in contrast to the standard Kinetic Ising model. We are interested in a scenario in which there is a model generating data but only a portion of these data is visible to the models. To reproduce this, we first simulated a model with N=10 total neurons for 5000 steps where we only collect the data from V=6 visible neurons. Subsequently, we try to infer the parameters that maximize the Likelihood both with a standard Kinetic Ising model and with a Kinetic Ising model with a unique hidden unit. We asses the inference process doing a simulation of the network every 250 iterations for 6500 time-steps. With the data generated in the simulations, we compute the mean ($\*m$), same time correlations ($\*C$) and delayed correlations ($\*D$).\\
+In order to make sure that the results were not biased by the initialization of each of the algorithms, we have repeated the experiments several times randomly modifying several aspects driven with a seed. These aspects include: the parameters $\*H$ and $\*J$ of the original model, the random selection of the neurons out of the original set and the initialization of the parameters of the new models.\\
 
-In order to make sure that the results were not biased by the initialization of each of the algorithms, we have repeated the experiments several times randomly modifying several aspects driven with a seed. This aspects include: the parameters $\*H$ and $\*J$ of the original model, the random selection of the neurons out of the original set and the initialization of the parameters of the new models.
+In all the figures displayed in the appendix~\ref{sec:figures} we can observe the same behavior. If we look at the bottom part of the figures we will see that the Mean Squared Error (MSE) of the all the statistical moments $\*m$,  $\*C$ and  $\*D$ computed after the simulations is always lower or equal in the models with a hidden unit. This is more remarkable in most of the cases if we observe the MSE of the mean and the delayed correlations. The results can be reproduced using the script sim\_fit\_HI2.py and modifying the seed. 
 
-The results can be reproduced using the script sim\_fit\_HI2.py and modifying the seed. 
+
+\bibliographystyle{unsrt}
+\bibliography{references}
 
 \newpage
+\appendix
+\section{Figures}
+\label{sec:figures}
+
 \subsection{Seed 722}
 
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=0.7\linewidth]{images/sqrt_size/[722]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 722. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+\caption{Seed: 722. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
     \includegraphics[width=0.7\linewidth]{images/sqrt_size/[722]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 722. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+\caption{Seed: 722. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -207,15 +212,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[1185]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 1185. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[1185]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 1185. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[1185]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 1185. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[1185]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 1185. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -224,15 +229,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[2178]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 2178. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[2178]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 2178. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[2178]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 2178. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[2178]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 2178. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -242,15 +247,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[2692]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 2692. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[2692]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 2692. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[2692]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 2692. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[2692]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 2692. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -260,15 +265,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3262]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3262. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3262]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3262. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3262]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3262. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3262]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3262. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -278,15 +283,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3813]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3813. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3813]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3813. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3813]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3813. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3813]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3813. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -296,15 +301,15 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3988]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3988. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3988]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3988. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[3988]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 3988. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[3988]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 3988. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
@@ -316,21 +321,20 @@ The results can be reproduced using the script sim\_fit\_HI2.py and modifying th
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[4075]_10_6_0_5000_6500_eta001_5000_100.png}
-\caption{Seed: 4075. Standard Ising model. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[4075]_10_6_0_5000_6500_eta001_5000_100.png}
+\caption{Seed: 4075. Standard Ising model. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 \begin{figure}[!htb]
     \centering
-    \includegraphics[width=0.8\linewidth]{images/sqrt_size/[4075]_10_6_1_5000_6500_eta001_5000_100.png}
-\caption{Seed: 4075. Kinetic Ising model with 1 hidden unit. Top: logarithm of the Likelihood, square of the maximum gradient and difference of the Likelihood between consecutive time-steps. Middle: Mean Squared Error (MSE) of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
+    \includegraphics[width=0.7\linewidth]{images/sqrt_size/[4075]_10_6_1_5000_6500_eta001_5000_100.png}
+\caption{Seed: 4075. Kinetic Ising model with 1 hidden unit. Top: logarithm of the likelihood, square of the maximum gradient and difference of the likelihood between consecutive time-steps. Middle: MSE of m and D during inference and evolution of the behavior of $\*J$. Bottom: MSE of m, D and D after the simulations.}
 \end{figure}
 
 
 
-\bibliographystyle{unsrt}
-\bibliography{references}
+
 
 \end{document}
 

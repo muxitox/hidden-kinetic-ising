@@ -25,5 +25,6 @@ A file with the name '"\722"\_10_6_0_5000_6500_eta001_5000_100' means the follow
 * 5000: maximum iterations of the learning loop.
 * 5000: the burn-in in the simulations.
 
-
+.png files include graphs showing the behavior of the systems.
+.npz files include the parameters and results achieved after inference.
 
