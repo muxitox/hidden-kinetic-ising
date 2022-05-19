@@ -5,6 +5,8 @@
 
 This project contains an implementation of a Kinetic Ising model with latent hidden units that vary over time.
 
+[ERROR] Random numger generator calls have been modified to correctly invoke to Gaussian functions, some experiments must be remade.
+
 ## Description of the code
 
 The code to reproduce the results can be found in the 'hidden_kinetic_ising' and 'kinetic_ising' folder:
