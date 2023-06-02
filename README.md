@@ -5,7 +5,7 @@
 
 This project contains an implementation of a Kinetic Ising model with latent hidden units that vary over time.
 
-[ERROR] Random numger generator calls have been modified to correctly invoke to Gaussian functions, some experiments must be remade.
+[ERROR] Random numger generator calls have been modified to correctly invoke to Gaussian functions, some experiments must be remade. Make sure H biases are set to 0, only J are initialized.
 
 ## Description of the code
 
